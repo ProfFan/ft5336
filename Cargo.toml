@@ -7,20 +7,8 @@ categories = ["embedded", "hardware-support", "no-std"]
 description = "A platform agnostic driver for the FT5336 touch screen driver used on the STM32F746 Discovery board,  built using the embedded-hal"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/bobgates/ft5336"
-keywords = [
-    "embedded-hal",
-    "embedded-hal-driver",
-    "FT5663",
-    "touchscreen",
-]
+keywords = ["embedded-hal", "embedded-hal-driver", "FT5663", "touchscreen"]
 readme = "README.md"
 
 [dependencies]
-embedded-hal = "0.2.1"
-
-[dev-dependencies]
-cortex-m = "0.7"
-cortex-m-rt = ">=0.6.15, <0.8"
-rtt-target = { version = "0.3.1", features = ["cortex-m"] }
-stm32f7xx-hal = {version = "0.6.0", features = ["stm32f746"]}
-panic-semihosting = "0.5.2"
+embedded-hal = "1.0.0"

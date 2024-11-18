@@ -66,8 +66,8 @@ const FT5336_MAX_Y_LENGTH: u16 = 480_u16;
 #[allow(dead_code)]
 const FT5336_TOUCHPAD_ADDR: u8 = 0x38;
 
-use embedded_hal as hal;
-use hal::blocking::{delay::DelayMs, i2c};
+use embedded_hal::delay::DelayNs;
+use embedded_hal::i2c;
 
 use core::marker::PhantomData;
 
@@ -182,7 +182,7 @@ pub struct GestureInit<I2C> {
 /// has a different set of gestures available to the list above.
 impl<'b, I2C, E> GestureInit<I2C>
 where
-    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E> + i2c::Read<Error = E>,
+    I2C: i2c::I2c<Error = E>,
 {
     /// Initialise. Takes the I2C address just to avoid transferring it all the time.
     /// It turns out the gesture init registers are contiguous, see comment above
@@ -253,17 +253,17 @@ where
 pub struct Ft5336<'a, I2C> {
     i2c: PhantomData<I2C>,
     addr: u8,
-    delay: &'a mut dyn DelayMs<u32>,
+    delay: &'a mut dyn DelayNs,
 }
 
 impl<'a, I2C, E> Ft5336<'a, I2C>
 where
-    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+    I2C: i2c::I2c<Error = E>,
 {
     /// Creates a new sensor associated with an I2C peripheral.
     ///
     /// Phantom I2C ensures that whatever I2C bus the device was created on is the one that is used for all future interations.
-    pub fn new(_i2c: &I2C, addr: u8, delay_source: &'a mut impl DelayMs<u32>) -> Result<Self, E> {
+    pub fn new(_i2c: &I2C, addr: u8, delay_source: &'a mut impl DelayNs) -> Result<Self, E> {
         let ft5336 = Ft5336 {
             i2c: PhantomData,
             addr: addr,
