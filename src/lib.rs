@@ -43,7 +43,8 @@ const FT5336_CHIP_ID_REG: u8 = 0xA8;
 const FT5336_FIRMID_REG: u8 = 0xA6;
 const FT5336_ID: u8 = 0x51;
 
-// /* Values Pn_XH and Pn_YH related */
+/* Values Pn_XH and Pn_YH related */
+const FT5336_TOUCH_EVT_BIT_MASK: u8 = 0xC0;
 // const FT5336_TOUCH_EVT_FLAG_PRESS_DOWN: u8 = 0x00;
 // const FT5336_TOUCH_EVT_FLAG_LIFT_UP: u8 = 0x01;
 // const FT5336_TOUCH_EVT_FLAG_CONTACT: u8 = 0x02;
@@ -97,6 +98,20 @@ const FT5336_CAPABILITIES: Ft5336Capabilities = Ft5336Capabilities {
     may_y_length: FT5336_MAX_Y_LENGTH,
 };
 
+/// Touch event types
+#[derive(Copy, Clone, Debug, PartialEq)]
+#[repr(u8)]
+pub enum TouchEvent {
+    /// Press down event
+    PressDown = 0,
+    /// Lift up event
+    LiftUp = 1,
+    /// Contact event
+    Contact = 2,
+    /// No event
+    NoEvent = 3,
+}
+
 /// Touch structure - derived from the available I2C registers
 /// There are ten available touch registers on the chip, but also
 /// a defined maximum of 5 in FT5336_MAX_NB_TOUCH above.
@@ -117,9 +132,9 @@ const FT5336_CAPABILITIES: Ft5336Capabilities = Ft5336Capabilities {
 // etc
 #[derive(Copy, Clone, Debug)]
 pub struct TouchState {
-    /// Was a touch detected:
-    pub detected: bool,
-    /// X postion
+    /// Event
+    pub event: TouchEvent,
+    /// X position
     pub x: u16,
     /// Y position
     pub y: u16,
@@ -427,13 +442,19 @@ where
         // Tried copying the c code literally here. It makes no difference though
         let x: u16 = (FT5336_P1_XH_TP_BIT_MASK & buf[0]) as u16 * 256 + buf[1] as u16;
         let y: u16 = (FT5336_P1_YH_TP_BIT_MASK & buf[2]) as u16 * 256 + buf[3] as u16;
+        let evt_flag = (FT5336_TOUCH_EVT_BIT_MASK & buf[0]) >> 6;
 
         Ok(TouchState {
-            detected: true,
             x,
             y,
             weight: buf[4],
             misc: buf[5],
+            event: match evt_flag {
+                0 => TouchEvent::PressDown,
+                1 => TouchEvent::LiftUp,
+                2 => TouchEvent::Contact,
+                _ => TouchEvent::NoEvent,
+            },
         })
     }
 
